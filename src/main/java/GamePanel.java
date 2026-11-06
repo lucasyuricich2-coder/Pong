@@ -17,21 +17,30 @@ public class GamePanel extends JPanel implements Runnable {
     static final int GAME_HEIGHT = (int)(GAME_WIDTH * (0.5555));
     static final Dimension SCREEN_SIZE = new Dimension(GAME_WIDTH, GAME_HEIGHT);
     static final int BALL_DIAMETER = 21;
-    static final int PADDLE_WIDTH = 25;
-    static final int PADDLE_HEIGHT = 100;
+
+    static final int PADDLE_WIDTH_1V1  = 25;
+    static final int PADDLE_HEIGHT_1V1 = 100;
+    static final int PADDLE_SPEED_1V1  = 13;
+
+    static final int PADDLE_WIDTH_2V2  = 20;
+    static final int PADDLE_HEIGHT_2V2 = 75;
+    static final int PADDLE_SPEED_2V2  = 16;
+
     static final int WINNING_SCORE = 15;
 
     Thread gameThread;
     Image image;
     Graphics graphics;
-    Paddle paddle1;
-    Paddle paddle2;
     Ball ball;
     Score score;
     Random random;
 
-    String player1Name, player2Name;
-    Color paddle1Color, paddle2Color;
+    Paddle[] paddles;
+    int numPaddles;
+
+    String[] playerNames;
+    Color[]  playerColors;
+    int mode;
     GameFrame frame;
 
     volatile boolean running = true;
@@ -40,16 +49,22 @@ public class GamePanel extends JPanel implements Runnable {
 
     JButton restartButton;
 
-    GamePanel(String p1, String p2, Color c1, Color c2, GameFrame frame) {
-        this.player1Name = p1;
-        this.player2Name = p2;
-        this.paddle1Color = c1;
-        this.paddle2Color = c2;
+    GamePanel(String[] names, Color[] colors, int mode, GameFrame frame) {
+        this.playerNames  = names;
+        this.playerColors = colors;
+        this.mode = mode;
         this.frame = frame;
+
+        if (mode == ModeMenu.MODE_2V2) {
+            numPaddles = 4;
+        } else {
+            numPaddles = 2;
+        }
+        paddles = new Paddle[numPaddles];
 
         newPaddles();
         newBall();
-        score = new Score(GAME_WIDTH, GAME_HEIGHT, p1, p2);
+        score = new Score(GAME_WIDTH, GAME_HEIGHT, names, mode);
         this.setFocusable(true);
         this.addKeyListener(new AL());
         this.setPreferredSize(SCREEN_SIZE);
@@ -78,10 +93,14 @@ public class GamePanel extends JPanel implements Runnable {
         if (gameOver) return;
         paused = !paused;
         if (paused) {
-            paddle1.setYDirection(0);
-            paddle2.setYDirection(0);
+            for (Paddle p : paddles) p.setYDirection(0);
         }
         repaint();
+    }
+
+    private void returnToMenu() {
+        running = false;
+        frame.startNewGame();
     }
 
     public void newBall() {
@@ -92,11 +111,28 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void newPaddles() {
-        paddle1 = new Paddle(0, (GAME_HEIGHT / 2) - (PADDLE_HEIGHT / 2),
-                             PADDLE_WIDTH, PADDLE_HEIGHT, 1, paddle1Color);
-        paddle2 = new Paddle(GAME_WIDTH - PADDLE_WIDTH,
-                             (GAME_HEIGHT / 2) - (PADDLE_HEIGHT / 2),
-                             PADDLE_WIDTH, PADDLE_HEIGHT, 2, paddle2Color);
+        if (mode == ModeMenu.MODE_2V2) {
+            int w = PADDLE_WIDTH_2V2;
+            int h = PADDLE_HEIGHT_2V2;
+            int sp = PADDLE_SPEED_2V2;
+            int gap = 40; 
+
+            int topY = (GAME_HEIGHT / 2) - h - (gap / 2);
+            int botY = (GAME_HEIGHT / 2) + (gap / 2);
+
+            paddles[0] = new Paddle(0, topY, w, h, 1, playerColors[0], sp);
+            paddles[2] = new Paddle(0, botY, w, h, 3, playerColors[2], sp);
+
+            paddles[1] = new Paddle(GAME_WIDTH - w, topY, w, h, 2, playerColors[1], sp);
+            paddles[3] = new Paddle(GAME_WIDTH - w, botY, w, h, 4, playerColors[3], sp);
+        } else {
+            int w = PADDLE_WIDTH_1V1;
+            int h = PADDLE_HEIGHT_1V1;
+            int sp = PADDLE_SPEED_1V1;
+
+            paddles[0] = new Paddle(0, (GAME_HEIGHT / 2) - (h / 2), w, h, 1, playerColors[0], sp);
+            paddles[1] = new Paddle(GAME_WIDTH - w, (GAME_HEIGHT / 2) - (h / 2), w, h, 2, playerColors[1], sp);
+        }
     }
 
     @Override
@@ -110,12 +146,18 @@ public class GamePanel extends JPanel implements Runnable {
 
         if (!gameOver) {
             g.setColor(new Color(255, 255, 255, 180));
-            g.setFont(new Font("Consolas", Font.BOLD, 20));
-            String hint = paused
+            g.setFont(new Font("Consolas", Font.BOLD, 18));
+            FontMetrics fm = g.getFontMetrics();
+
+            String hint1 = paused
                 ? "PAUSA - Presiona ESPACIO para reanudar"
                 : "Presiona ESPACIO para pausar";
-            FontMetrics fm = g.getFontMetrics();
-            g.drawString(hint, 20, GAME_HEIGHT - 20 - fm.getDescent());
+            String hint2 = "Presiona BACKSPACE para volver al menú principal";
+
+            int lineHeight = fm.getHeight();
+            int baseY = GAME_HEIGHT - 20 - fm.getDescent();
+            g.drawString(hint2, 20, baseY);
+            g.drawString(hint1, 20, baseY - lineHeight);
         }
 
         if (paused && !gameOver) {
@@ -135,25 +177,36 @@ public class GamePanel extends JPanel implements Runnable {
             g2d.setColor(new Color(0, 0, 0, 150));
             g2d.fillRect(0, 0, getWidth(), getHeight());
 
-            String winner = (score.player1 >= WINNING_SCORE) ? player1Name : player2Name;
+            String winner = (score.player1 >= WINNING_SCORE)
+                    ? playerNames[0] + " y " + playerNames[2]
+                    : playerNames[1] + " y " + playerNames[3];
+            // En 1v1 solo muestra el nombre del ganador individual
+            if (mode != ModeMenu.MODE_2V2) {
+                winner = (score.player1 >= WINNING_SCORE) ? playerNames[0] : playerNames[1];
+            }
+
             g.setColor(Color.YELLOW);
             g.setFont(new Font("Consolas", Font.BOLD, 48));
             String text = "¡" + winner + " Gana!";
             FontMetrics fm = g.getFontMetrics();
             g.drawString(text, (GAME_WIDTH - fm.stringWidth(text)) / 2, (GAME_HEIGHT / 2) - 20);
+
+            g.setColor(new Color(255, 255, 255, 200));
+            g.setFont(new Font("Consolas", Font.BOLD, 20));
+            String hint2 = "Presiona BACKSPACE para volver al menú principal";
+            FontMetrics fm2 = g.getFontMetrics();
+            g.drawString(hint2, 20, GAME_HEIGHT - 20 - fm2.getDescent());
         }
     }
 
     public void draw(Graphics g) {
-        paddle1.draw(g);
-        paddle2.draw(g);
+        for (Paddle p : paddles) p.draw(g);
         ball.draw(g);
         score.draw(g);
     }
 
     public void move() {
-        paddle1.move();
-        paddle2.move();
+        for (Paddle p : paddles) p.move();
         ball.move();
     }
 
@@ -167,41 +220,30 @@ public class GamePanel extends JPanel implements Runnable {
             ball.setYDirection(-ball.yVelocity);
         }
 
-        if (ball.intersects(paddle1)) {
-            ball.xVelocity = Math.abs(ball.xVelocity);
-            ball.xVelocity++;
-            if (ball.yVelocity > 0)
-                ball.yVelocity++;
-            else
-                ball.yVelocity--;
-            ball.setXDirection(ball.xVelocity);
-            ball.setYDirection(ball.yVelocity);
+        for (Paddle p : paddles) {
+            if (ball.intersects(p)) {
+                boolean leftSide = (p.x < GAME_WIDTH / 2);
+                ball.xVelocity = Math.abs(ball.xVelocity);
+                ball.xVelocity++;
+                if (!leftSide) {
+                    ball.xVelocity = -ball.xVelocity;
+                }
+                if (ball.yVelocity > 0) ball.yVelocity++;
+                else                    ball.yVelocity--;
+                ball.setXDirection(ball.xVelocity);
+                ball.setYDirection(ball.yVelocity);
+                break; 
+            }
         }
 
-        if (ball.intersects(paddle2)) {
-            ball.xVelocity = Math.abs(ball.xVelocity);
-            ball.xVelocity++;
-            ball.xVelocity = -ball.xVelocity;
-            if (ball.yVelocity > 0)
-                ball.yVelocity++;
-            else
-                ball.yVelocity--;
-            ball.setXDirection(ball.xVelocity);
-            ball.setYDirection(ball.yVelocity);
+        for (Paddle p : paddles) {
+            if (p.y <= 0) p.y = 0;
+            if (p.y >= (GAME_HEIGHT - p.height)) p.y = GAME_HEIGHT - p.height;
         }
-
-        if (paddle1.y <= 0)
-            paddle1.y = 0;
-        if (paddle1.y >= (GAME_HEIGHT - PADDLE_HEIGHT))
-            paddle1.y = GAME_HEIGHT - PADDLE_HEIGHT;
-        if (paddle2.y <= 0)
-            paddle2.y = 0;
-        if (paddle2.y >= (GAME_HEIGHT - PADDLE_HEIGHT))
-            paddle2.y = GAME_HEIGHT - PADDLE_HEIGHT;
 
         if (ball.x <= 0) {
             score.player2++;
-            System.out.println(player2Name + ": " + score.player2);
+            System.out.println("Punto derecha: " + score.player2);
             if (score.player2 >= WINNING_SCORE) {
                 endGame();
             } else {
@@ -212,7 +254,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         if (ball.x >= GAME_WIDTH - BALL_DIAMETER) {
             score.player1++;
-            System.out.println(player1Name + ": " + score.player1);
+            System.out.println("Punto izquierda: " + score.player1);
             if (score.player1 >= WINNING_SCORE) {
                 endGame();
             } else {
@@ -226,7 +268,7 @@ public class GamePanel extends JPanel implements Runnable {
         gameOver = true;
         running = false;
         SwingUtilities.invokeLater(() -> {
-            restartButton.setVisible(true);  
+            restartButton.setVisible(true);
         });
     }
 
@@ -240,7 +282,7 @@ public class GamePanel extends JPanel implements Runnable {
             delta += (now - lastTime) / ns;
             lastTime = now;
             if (delta >= 1) {
-                if (!gameOver && !paused) {  
+                if (!gameOver && !paused) {
                     move();
                     checkCollision();
                 }
@@ -252,19 +294,21 @@ public class GamePanel extends JPanel implements Runnable {
 
     public class AL extends KeyAdapter {
         @Override
-        public void keyPressed(KeyEvent e) {       
+        public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+                returnToMenu();
+                return;
+            }
             if (e.getKeyCode() == KeyEvent.VK_SPACE && !gameOver) {
                 togglePause();
                 return;
             }
             if (gameOver || paused) return;
-            paddle1.keyPressed(e);
-            paddle2.keyPressed(e);
+            for (Paddle p : paddles) p.keyPressed(e);
         }
         @Override
         public void keyReleased(KeyEvent e) {
-            paddle1.keyReleased(e);
-            paddle2.keyReleased(e);
+            for (Paddle p : paddles) p.keyReleased(e);
         }
     }
 }
