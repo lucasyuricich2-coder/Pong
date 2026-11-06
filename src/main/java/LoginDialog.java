@@ -12,14 +12,14 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class LoginDialog extends JDialog {
-    private JTextField player1Field;
-    private JTextField player2Field;
-    private String player1Name;
-    private String player2Name;
-    private boolean confirmed = false;
+    private final int mode; 
 
-    private Color player1Color;
-    private Color player2Color;
+    private JTextField[] nameFields;
+    private JComboBox<String>[] colorBoxes;
+
+    private String[] playerNames;
+    private Color[] playerColors;
+    private boolean confirmed = false;
 
     private final Color[] basicColors = {
         Color.BLUE, Color.RED, Color.YELLOW, Color.ORANGE,
@@ -30,107 +30,125 @@ public class LoginDialog extends JDialog {
         "Cian", "Magenta", "Rosa", "Blanco"
     };
 
-    public LoginDialog(JFrame parent) {
-        super(parent, "Login - Pong Game", true);
+    @SuppressWarnings("unchecked")
+    public LoginDialog(JFrame parent, int mode) {
+        super(parent, "Configuración - Pong Game", true);
+        this.mode = mode;
         initComponents();
     }
 
+    @SuppressWarnings("unchecked")
     private void initComponents() {
+        int numPlayers = (mode == ModeMenu.MODE_2V2) ? 4 : 2;
+
+        nameFields  = new JTextField[numPlayers];
+        colorBoxes  = new JComboBox[numPlayers];
+        playerNames = new String[numPlayers];
+        playerColors = new Color[numPlayers];
+
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(new Color(0, 0, 0));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.insets = new Insets(6, 8, 6, 8);
 
-        JLabel title = new JLabel("PONG GAME");
-        title.setFont(new Font("Consolas", Font.BOLD, 32));
+        JLabel title = new JLabel("PONG GAME - " + (numPlayers == 4 ? "2 vs 2" : "1 vs 1"));
+        title.setFont(new Font("Consolas", Font.BOLD, 28));
         title.setForeground(Color.WHITE);
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 3;
         gbc.anchor = GridBagConstraints.CENTER;
         panel.add(title, gbc);
 
-        JLabel l1 = new JLabel("Jugador 1:");
-        l1.setFont(new Font("Consolas", Font.BOLD, 25));
-        l1.setForeground(Color.WHITE);
-        gbc.gridwidth = 1; gbc.gridx = 0; gbc.gridy = 1;
-        gbc.anchor = GridBagConstraints.EAST;
-        panel.add(l1, gbc);
+        if (numPlayers == 4) {
+            JLabel hdrL = new JLabel("EQUIPO IZQUIERDO");
+            hdrL.setFont(new Font("Consolas", Font.BOLD, 14));
+            hdrL.setForeground(new Color(150, 200, 255));
+            gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 3;
+            gbc.anchor = GridBagConstraints.WEST;
+            panel.add(hdrL, gbc);
+        }
 
-        player1Field = new JTextField(15);
-        player1Field.setFont(new Font("Consolas", Font.PLAIN, 14));
-        gbc.gridx = 1; gbc.gridy = 1;
-        gbc.anchor = GridBagConstraints.WEST;
-        panel.add(player1Field, gbc);
+        int row = 2;
+        for (int i = 0; i < numPlayers; i++) {
+          
+            if (numPlayers == 4 && i == 2) {
+                JLabel hdrR = new JLabel("EQUIPO DERECHO");
+                hdrR.setFont(new Font("Consolas", Font.BOLD, 14));
+                hdrR.setForeground(new Color(255, 180, 180));
+                gbc.gridx = 0; gbc.gridy = row++; gbc.gridwidth = 3;
+                gbc.anchor = GridBagConstraints.WEST;
+                panel.add(hdrR, gbc);
+            }
 
-        JLabel l2 = new JLabel("Jugador 2:");
-        l2.setFont(new Font("Consolas", Font.BOLD, 25));
-        l2.setForeground(Color.WHITE);
-        gbc.gridx = 0; gbc.gridy = 2;
-        gbc.anchor = GridBagConstraints.EAST;
-        panel.add(l2, gbc);
+            JLabel lbl = new JLabel("Jugador " + (i + 1) + ":");
+            lbl.setFont(new Font("Consolas", Font.BOLD, 18));
+            lbl.setForeground(Color.WHITE);
+            gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 1;
+            gbc.anchor = GridBagConstraints.EAST;
+            panel.add(lbl, gbc);
 
-        player2Field = new JTextField(15);
-        player2Field.setFont(new Font("Consolas", Font.PLAIN, 14));
-        gbc.gridx = 1; gbc.gridy = 2;
-        gbc.anchor = GridBagConstraints.WEST;
-        panel.add(player2Field, gbc);
+            nameFields[i] = new JTextField(12);
+            nameFields[i].setFont(new Font("Consolas", Font.PLAIN, 14));
+            gbc.gridx = 1; gbc.gridy = row;
+            gbc.anchor = GridBagConstraints.WEST;
+            panel.add(nameFields[i], gbc);
 
-        JLabel lc1 = new JLabel("Color J1:");
-        lc1.setFont(new Font("Consolas", Font.BOLD, 20));
-        lc1.setForeground(Color.WHITE);
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.EAST;
-        panel.add(lc1, gbc);
+            colorBoxes[i] = new JComboBox<>(colorNames);
 
-        JComboBox<String> colorBox1 = new JComboBox<>(colorNames);
-        colorBox1.setSelectedIndex(0);
-        colorBox1.setFont(new Font("Consolas", Font.PLAIN, 14));
-        gbc.gridx = 1; gbc.gridy = 3;
-        gbc.anchor = GridBagConstraints.WEST;
-        panel.add(colorBox1, gbc);
+            int[] defaults = {0, 1, 4, 5};
+            colorBoxes[i].setSelectedIndex(defaults[i % defaults.length]);
+            colorBoxes[i].setFont(new Font("Consolas", Font.PLAIN, 14));
+            gbc.gridx = 2; gbc.gridy = row;
+            gbc.anchor = GridBagConstraints.WEST;
+            panel.add(colorBoxes[i], gbc);
 
-        JLabel lc2 = new JLabel("Color J2:");
-        lc2.setFont(new Font("Consolas", Font.BOLD, 20));
-        lc2.setForeground(Color.WHITE);
-        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.EAST;
-        panel.add(lc2, gbc);
+            row++;
+        }
 
-        JComboBox<String> colorBox2 = new JComboBox<>(colorNames);
-        colorBox2.setSelectedIndex(1);
-        colorBox2.setFont(new Font("Consolas", Font.PLAIN, 14));
-        gbc.gridx = 1; gbc.gridy = 4;
-        gbc.anchor = GridBagConstraints.WEST;
-        panel.add(colorBox2, gbc);
- 
+        String controls = (numPlayers == 4)
+            ? "<html><center>Controles:<br>" +
+              "J1 (izq): W / S &nbsp;&nbsp; J3 (izq): R / F<br>" +
+              "J2 (der): ↑ / ↓ &nbsp;&nbsp; J4 (der): O / L</center></html>"
+            : "<html><center>Controles:<br>J1: W / S &nbsp;&nbsp; J2: ↑ / ↓</center></html>";
+        JLabel controlsLbl = new JLabel(controls);
+        controlsLbl.setFont(new Font("Consolas", Font.PLAIN, 13));
+        controlsLbl.setForeground(new Color(200, 200, 200));
+        gbc.gridx = 0; gbc.gridy = row++; gbc.gridwidth = 3;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(controlsLbl, gbc);
+
         JButton startBtn = new JButton("Iniciar Juego");
         startBtn.setFont(new Font("Consolas", Font.BOLD, 16));
         startBtn.setBackground(new Color(0, 180, 0));
         startBtn.setForeground(Color.WHITE);
         startBtn.setFocusPainted(false);
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
+        gbc.gridy = row++;
         gbc.anchor = GridBagConstraints.CENTER;
         panel.add(startBtn, gbc);
 
         startBtn.addActionListener(e -> {
-            String p1 = player1Field.getText().trim();
-            String p2 = player2Field.getText().trim();
-
-            if (p1.isEmpty() || p2.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                    "Por favor ingrese los nombres de ambos jugadores.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-                return;
+            for (int i = 0; i < nameFields.length; i++) {
+                String n = nameFields[i].getText().trim();
+                if (n.isEmpty()) {
+                    JOptionPane.showMessageDialog(this,
+                        "Por favor ingrese el nombre del jugador " + (i + 1) + ".",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                playerNames[i] = n;
             }
-            if (p1.equals(p2)) {
-                JOptionPane.showMessageDialog(this,
-                    "Los nombres deben ser diferentes.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-                return;
+            for (int i = 0; i < playerNames.length; i++) {
+                for (int j = i + 1; j < playerNames.length; j++) {
+                    if (playerNames[i].equalsIgnoreCase(playerNames[j])) {
+                        JOptionPane.showMessageDialog(this,
+                            "Los nombres deben ser diferentes.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
             }
-            player1Name = p1;
-            player2Name = p2;
-            player1Color = basicColors[colorBox1.getSelectedIndex()];
-            player2Color = basicColors[colorBox2.getSelectedIndex()];
+            for (int i = 0; i < colorBoxes.length; i++) {
+                playerColors[i] = basicColors[colorBoxes[i].getSelectedIndex()];
+            }
             confirmed = true;
             dispose();
         });
@@ -138,21 +156,24 @@ public class LoginDialog extends JDialog {
         getRootPane().setDefaultButton(startBtn);
 
         add(panel);
-        setSize(450, 420);
+        setSize(520, numPlayers == 4 ? 620 : 420);
         setLocationRelativeTo(getParent());
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowOpened(WindowEvent e) {
-                player1Field.requestFocusInWindow();
+                nameFields[0].requestFocusInWindow();
             }
         });
     }
 
     public boolean isConfirmed() { return confirmed; }
-    public String getPlayer1Name() { return player1Name; }
-    public String getPlayer2Name() { return player2Name; }
-    public Color getPlayer1Color() { return player1Color; }
-    public Color getPlayer2Color() { return player2Color; }
+    public String[] getPlayerNames()  { return playerNames; }
+    public Color[]  getPlayerColors() { return playerColors; }
+
+    public String getPlayer1Name() { return playerNames[0]; }
+    public String getPlayer2Name() { return playerNames[1]; }
+    public Color  getPlayer1Color(){ return playerColors[0]; }
+    public Color  getPlayer2Color(){ return playerColors[1]; }
 }

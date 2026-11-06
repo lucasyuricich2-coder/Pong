@@ -15,61 +15,60 @@ import javax.swing.*;
 public class Paddle extends Rectangle {
     int id;
     int yVelocity;
-    int speed = 13;
+    int speed;
     Color paddleColor;
 
-    Paddle(int x, int y, int PADDLE_WIDTH, int PADDLE_HEIGHT, int id, Color color){
+    Paddle(int x, int y, int PADDLE_WIDTH, int PADDLE_HEIGHT, int id, Color color, int speed){
         super(x,y,PADDLE_WIDTH,PADDLE_HEIGHT);
         this.id = id;
         this.paddleColor = color;
+        this.speed = speed;
+    }
+
+    Paddle(int x, int y, int PADDLE_WIDTH, int PADDLE_HEIGHT, int id, Color color){
+        this(x, y, PADDLE_WIDTH, PADDLE_HEIGHT, id, color, 13);
     }
 
     public void keyPressed (KeyEvent e) {
+        int key = e.getKeyCode();
         switch(id) {
             case 1:
-                if(e.getKeyCode()==KeyEvent.VK_W) {
-                    setYDirection(-speed);
-                    move();
-                }
-                if(e.getKeyCode()==KeyEvent.VK_S) {
-                    setYDirection(speed);
-                    move();
-                }
+                if(key==KeyEvent.VK_W) { setYDirection(-speed); move(); }
+                if(key==KeyEvent.VK_S) { setYDirection(speed);  move(); }
                 break;
             case 2:
-                if(e.getKeyCode()==KeyEvent.VK_UP) {
-                    setYDirection(-speed);
-                    move();
-                }
-                if(e.getKeyCode()==KeyEvent.VK_DOWN) {
-                    setYDirection(speed);
-                    move();
-                }
+                if(key==KeyEvent.VK_UP)   { setYDirection(-speed); move(); }
+                if(key==KeyEvent.VK_DOWN) { setYDirection(speed);  move(); }
+                break;
+            case 3:
+                if(key==KeyEvent.VK_R) { setYDirection(-speed); move(); }
+                if(key==KeyEvent.VK_F) { setYDirection(speed);  move(); }
+                break;
+            case 4:
+                if(key==KeyEvent.VK_O) { setYDirection(-speed); move(); }
+                if(key==KeyEvent.VK_L) { setYDirection(speed);  move(); }
                 break;
         }
     }
 
     public void keyReleased (KeyEvent e) {
+        int key = e.getKeyCode();
         switch(id) {
             case 1:
-                if(e.getKeyCode()==KeyEvent.VK_W) {
-                    setYDirection(0);
-                    move();
-                }
-                if(e.getKeyCode()==KeyEvent.VK_S) {
-                    setYDirection(0);
-                    move();
-                }
+                if(key==KeyEvent.VK_W) { setYDirection(0); move(); }
+                if(key==KeyEvent.VK_S) { setYDirection(0); move(); }
                 break;
             case 2:
-                if(e.getKeyCode()==KeyEvent.VK_UP) {
-                    setYDirection(0);
-                    move();
-                }
-                if(e.getKeyCode()==KeyEvent.VK_DOWN) {
-                    setYDirection(0);
-                    move();
-                }
+                if(key==KeyEvent.VK_UP)   { setYDirection(0); move(); }
+                if(key==KeyEvent.VK_DOWN) { setYDirection(0); move(); }
+                break;
+            case 3:
+                if(key==KeyEvent.VK_R) { setYDirection(0); move(); }
+                if(key==KeyEvent.VK_F) { setYDirection(0); move(); }
+                break;
+            case 4:
+                if(key==KeyEvent.VK_O) { setYDirection(0); move(); }
+                if(key==KeyEvent.VK_L) { setYDirection(0); move(); }
                 break;
         }
     }

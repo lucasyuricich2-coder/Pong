@@ -14,7 +14,9 @@ import javax.swing.*;
 
 public class GameFrame extends JFrame {
     GamePanel panel;
-    String player1Name, player2Name;
+    String[] playerNames;
+    Color[]  playerColors;
+    int currentMode = ModeMenu.MODE_1V1;
 
     GameFrame() {
         this.setTitle("Pong Game");
@@ -29,27 +31,44 @@ public class GameFrame extends JFrame {
     }
 
     public void startNewGame() {
-        LoginDialog login = new LoginDialog(this);
-        login.setVisible(true);
 
+        this.setVisible(false);
+
+        MainMenu menu = new MainMenu(this);
+        menu.setVisible(true);
+        if (!menu.isStartGame()) {
+            System.exit(0);
+            return;
+        }
+
+        ModeMenu modeMenu = new ModeMenu(this);
+        modeMenu.setVisible(true);
+        int mode = modeMenu.getSelectedMode();
+        if (mode == ModeMenu.MODE_NONE) {
+            startNewGame();
+            return;
+        }
+        currentMode = mode;
+
+        LoginDialog login = new LoginDialog(this, currentMode);
+        login.setVisible(true);
         if (!login.isConfirmed()) {
             System.exit(0);
             return;
         }
 
-        player1Name = login.getPlayer1Name();
-        player2Name = login.getPlayer2Name();
-        Color c1 = login.getPlayer1Color();
-        Color c2 = login.getPlayer2Color();
+        playerNames  = login.getPlayerNames();
+        playerColors = login.getPlayerColors();
 
         if (panel != null) {
             this.remove(panel);
         }
 
-        panel = new GamePanel(player1Name, player2Name, c1, c2, this);
+        panel = new GamePanel(playerNames, playerColors, currentMode, this);
         this.add(panel);
         this.pack();
         this.setLocationRelativeTo(null);
+        this.setVisible(true);
         panel.requestFocusInWindow();
     }
 }

@@ -31,7 +31,7 @@ public class MainMenu extends JDialog {
         gbc.anchor = GridBagConstraints.CENTER;
         panel.add(title, gbc);
 
-        JLabel subtitle = new JLabel("Juego de Pong para 2 jugadores");
+        JLabel subtitle = new JLabel("Juego de Pong para 2-4 jugadores");
         subtitle.setFont(new Font("Consolas", Font.PLAIN, 18));
         subtitle.setForeground(new Color(200, 200, 200));
         gbc.gridy = 1;
