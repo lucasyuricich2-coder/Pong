@@ -1,9 +1,9 @@
 # Pong
-🎮 Pong Game
+" Pong Game "
 
 Juego de Pong multijugador desarrollado en Java.
 
-📌 Descripción
+ Descripción
 
 Pong Game es una adaptación del clásico videojuego Pong, desarrollada utilizando Java y la biblioteca Swing.
 
@@ -11,7 +11,7 @@ El proyecto permite jugar partidas multijugador en una misma computadora, ofreci
 
 El objetivo consiste en controlar las paletas para devolver la pelota y conseguir puntos, evitando que esta atraviese el área de juego.
 
-✨ Características principales
+ Características principales
 
 - Modo 1 vs. 1: enfrentamiento entre dos jugadores.
 - Modo 2 vs. 2: partidas por equipos de dos jugadores.
@@ -22,7 +22,7 @@ El objetivo consiste en controlar las paletas para devolver la pelota y consegui
 - Menú principal: navegación entre las opciones del juego.
 - Reinicio: posibilidad de iniciar una nueva partida.
 
-🕹️ Controles
+ Controles
 
 Modo 1 vs. 1
 
@@ -51,14 +51,14 @@ Controles generales
 - ESPACIO: pausar o reanudar la partida.
 - BACKSPACE: regresar al menú principal.
 
-🛠️ Tecnologías utilizadas
+ Tecnologías utilizadas
 
 - Java 21: lenguaje de programación utilizado para desarrollar la lógica del juego.
 - Java Swing: creación de ventanas, menús, cuadros de diálogo e interfaz gráfica.
 - Java AWT: representación gráfica, colores, dimensiones y gestión de eventos del teclado.
 - Maven: herramienta de gestión y configuración del proyecto.
 
-📁 Estructura del proyecto
+ Estructura del proyecto
 
 Pong/
 │
@@ -89,7 +89,7 @@ Pong/
     └── src/
         └── ...
 
-⚙️ Requisitos
+ Requisitos
 
 Para ejecutar el proyecto se necesita:
 
@@ -97,7 +97,7 @@ Para ejecutar el proyecto se necesita:
 - Apache Maven.
 - Un entorno compatible con aplicaciones gráficas de Java Swing.
 
-🚀 Ejecución
+ Ejecución
 
 1. Descargar el proyecto desde GitHub.
 2. Extraer el archivo ZIP.
@@ -108,7 +108,7 @@ También se puede utilizar Maven desde la terminal:
 
 mvn clean compile
 
-📥 Descarga del proyecto
+ Descarga del proyecto
 
 Para descargar la versión correspondiente del proyecto:
 
@@ -121,7 +121,7 @@ Para descargar la versión correspondiente del proyecto:
 
 Importante: Es necesario seleccionar la rama "Mastef" antes de descargar el proyecto para obtener la versión indicada.
 
-🎯 Objetivo académico
+ Objetivo académico
 
 Este proyecto fue desarrollado con fines educativos, como ejercicio práctico de programación en Java.
 
